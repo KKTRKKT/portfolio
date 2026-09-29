@@ -205,6 +205,19 @@ footer b { font-family: var(--mono); font-weight: 500; color: var(--text); }
 .js .stats.in .stat b { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { .js .rv, .js .stat b { opacity: 1 !important; transform: none !important; transition: none !important; } .top nav .ink { transition: none; } }
 
+/* charge-to-advance: wheel past a section edge fills a gauge; full gauge moves to the next section */
+html.charge { scroll-snap-type: none; scroll-behavior: auto; }
+html.charge main { will-change: transform; }
+.charger { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); z-index: 20; display: flex; align-items: center; gap: 10px; padding: 7px 14px 7px 8px; border-radius: 999px; background: rgba(23,24,27,.9); color: #FBFBF9; font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; pointer-events: none; opacity: 0; transform: translate(-50%, 12px) scale(.96); transition: opacity .2s ease, transform .25s cubic-bezier(.2,.8,.2,1); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.charger.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+.charger svg { width: 22px; height: 22px; transform: rotate(-90deg); flex: none; }
+.charger .track { fill: none; stroke: rgba(251,251,249,.2); stroke-width: 3; }
+.charger .fill { fill: none; stroke: #8FA4FF; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 56.55; stroke-dashoffset: calc(56.55 * (1 - var(--c, 0))); }
+.charger.full .fill { stroke: #FBFBF9; }
+.charger b { font-weight: 500; color: #8FA4FF; }
+.charger .dir { display: inline-block; transition: transform .2s; }
+.charger.up .dir { transform: rotate(180deg); }
+
 @media (max-width: 820px) {
   .wrap { padding-inline: var(--s-4); }
   .top nav a:not(.cta) { display: none; }
@@ -509,6 +522,72 @@ footer b { font-family: var(--mono); font-weight: 500; color: var(--text); }
   addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
   addEventListener('resize', () => { current = null; update(); });
   update();
+})();
+</script>
+<script>
+(() => {
+  const root = document.documentElement;
+  const fine = matchMedia('(pointer: fine)').matches, calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!fine || calm) return;
+  root.classList.add('charge');
+  const HEAD = 60, NEED = 360;
+  const main = document.querySelector('main');
+  const pages = [...document.querySelectorAll('.hero, .principle, main > section')];
+  const nameOf = (el) => { const h = el.querySelector('h2, h1'); return h ? h.textContent.replace(/^일하는 방식:.*/, '일하는 방식').trim() : ''; };
+  const ui = document.createElement('div'); ui.className = 'charger'; ui.setAttribute('aria-hidden', 'true');
+  ui.innerHTML = '<svg viewBox="0 0 22 22"><circle class="track" cx="11" cy="11" r="9"/><circle class="fill" cx="11" cy="11" r="9"/></svg><span><span class="dir">&darr;</span> <b></b></span>';
+  document.body.appendChild(ui);
+  const label = ui.querySelector('b');
+  const maxY = () => root.scrollHeight - innerHeight;
+  const topOf = (el) => Math.max(0, Math.min(maxY(), Math.round(el.getBoundingClientRect().top + scrollY - HEAD)));
+  const endOf = (i) => { const next = i + 1 < pages.length ? topOf(pages[i + 1]) : maxY() + innerHeight - HEAD; return Math.max(topOf(pages[i]), Math.min(maxY(), next - (innerHeight - HEAD))); };
+  const indexAt = (y) => { let k = 0; pages.forEach((p, i) => { if (topOf(p) <= y + 4) k = i; }); return k; };
+
+  let targetY = scrollY, gliding = false, animating = false, quiet = false, quietT, charge = 0, dir = 0, releaseT, band = 0;
+  function glide() { const d = targetY - scrollY; if (Math.abs(d) < 0.5) { scrollTo(0, targetY); gliding = false; return; } scrollTo(0, scrollY + d * 0.22); requestAnimationFrame(glide); }
+  function free(y) { targetY = Math.max(0, Math.min(maxY(), y)); if (!gliding) { gliding = true; requestAnimationFrame(glide); } }
+  function setBand(v) { band = v; main.style.transform = v ? 'translate3d(0,' + v.toFixed(1) + 'px,0)' : ''; }
+  function show(c, d, name) { ui.style.setProperty('--c', c.toFixed(3)); ui.classList.toggle('show', c > 0.02); ui.classList.toggle('up', d < 0); ui.classList.toggle('full', c >= 1); label.textContent = name; }
+  function reset(spring) {
+    charge = 0; dir = 0; show(0, 1, label.textContent);
+    if (!spring) { setBand(0); return; }
+    const b0 = band, t0 = performance.now();
+    (function back(t) { const k = Math.min(1, (t - t0) / 380), e = 1 - Math.pow(1 - k, 3); setBand(b0 * (1 - e)); if (k < 1 && !charge) requestAnimationFrame(back); })(t0);
+  }
+  function jump(y) {
+    animating = true; gliding = false; setBand(0);
+    const y0 = scrollY, d = y - y0, T = 720, t0 = performance.now();
+    (function step(t) { const k = Math.min(1, (t - t0) / T), e = k < 1 ? 1 - Math.pow(1 - k, 4) : 1; scrollTo(0, y0 + d * e); if (k < 1) requestAnimationFrame(step); else { animating = false; targetY = scrollY; quiet = true; } })(t0);
+  }
+  addEventListener('wheel', (e) => {
+    if (e.ctrlKey) return;
+    e.preventDefault();
+    const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
+    if (animating) return;
+    // after a jump, wait for the wheel to go quiet so trackpad momentum does not charge the next one
+    if (quiet) { clearTimeout(quietT); quietT = setTimeout(() => { quiet = false; }, 160); if (charge === 0 && !gliding && dy !== 0 && Math.abs(dy) < 4) return; }
+    const y = gliding ? targetY : scrollY, i = indexAt(y), top = topOf(pages[i]), end = endOf(i);
+    if (dy > 0 && y < end - 1) { reset(false); free(Math.min(end, y + dy)); return; }
+    if (dy < 0 && y > top + 1) { reset(false); free(Math.max(top, y + dy)); return; }
+    if (quiet) return;
+    const d = Math.sign(dy); if (!d) return;
+    const to = d > 0 ? pages[i + 1] : pages[i - 1];
+    if (!to) { reset(true); return; }
+    if (d !== dir) { charge = 0; dir = d; }
+    charge += Math.abs(dy);
+    const c = Math.min(1, charge / NEED);
+    setBand(-d * 46 * (1 - Math.exp(-charge / 260)));
+    show(c, d, nameOf(to));
+    clearTimeout(releaseT);
+    if (c >= 1) { reset(false); jump(d > 0 ? topOf(to) : endOf(i - 1)); return; }
+    releaseT = setTimeout(() => reset(true), 220);
+  }, { passive: false });
+  // menu links glide instead of jumping
+  document.querySelectorAll('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const t = document.querySelector(a.getAttribute('href')); if (!t) return;
+    e.preventDefault(); reset(false); jump(topOf(t));
+  }));
+  addEventListener('scroll', () => { if (!gliding && !animating) targetY = scrollY; }, { passive: true });
 })();
 </script>
   </body>
