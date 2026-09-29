@@ -85,7 +85,7 @@ details.proj summary:hover .p-title { color: var(--accent); }
 .stat b { font-size: 26px; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1.25; }
 .stat span { font-family: var(--mono); font-size: 11.5px; color: var(--muted); line-height: 1.5; }
 
-.principle { margin-top: var(--s-6); display: grid; gap: var(--s-4); }
+.principle { margin-top: var(--s-5); display: grid; gap: var(--s-3); }
 .principle h2 { font-size: 20px; font-weight: 700; letter-spacing: -.01em; }
 .principle h2 em { font-style: normal; color: var(--accent); }
 .loop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 0; padding: 0; list-style: none; counter-reset: step; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
@@ -101,7 +101,7 @@ section { padding-bottom: 0; }
 .eyebrow i { font-style: normal; color: var(--accent); letter-spacing: .06em; }
 .eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--text); opacity: .16; transform-origin: left center; transition: transform .9s cubic-bezier(.2,.8,.2,1), opacity .9s ease; }
 /* magnet: sections snap their top edge right under the sticky bar; the eyebrow rule draws in when a section arrives */
-.hero, .principle, section { scroll-snap-align: start; scroll-margin-top: 60px; }
+.hero, section { scroll-snap-align: start; scroll-margin-top: 60px; }
 .case, details.proj:first-child, .repos, .pipe, .ecc { scroll-snap-align: start; scroll-margin-top: 84px; }
 footer { scroll-snap-align: end; }
 section { padding-top: 40px; margin-top: 24px; }
@@ -208,10 +208,12 @@ footer b { font-family: var(--mono); font-weight: 500; color: var(--text); }
 /* charge-to-advance: wheel past a section edge fills a gauge; full gauge moves to the next section */
 html.charge { scroll-snap-type: none; scroll-behavior: auto; }
 /* charge mode: every section is at least one screen tall so each reads as its own page */
-html.charge .hero, html.charge .principle, html.charge main > section { min-height: calc(100vh - 60px); }
+html.charge .hero, html.charge main > section { min-height: calc(100vh - 60px); }
 html.charge .hero { display: flex; flex-direction: column; justify-content: center; gap: var(--s-4); padding-block: var(--s-6); }
-html.charge .principle { margin-top: 0; padding-top: var(--s-8); align-content: start; }
 html.charge main > section { margin-top: 0; padding-top: var(--s-8); padding-bottom: var(--s-8); }
+html.charge .hero:not(.cur), html.charge main > section:not(.cur) { visibility: hidden; }
+html.charge footer { visibility: hidden; }
+html.charge.last footer { visibility: visible; }
 .charger { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); z-index: 20; display: flex; align-items: center; gap: 10px; padding: 7px 14px 7px 8px; border-radius: 999px; background: rgba(23,24,27,.9); color: #FBFBF9; font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; pointer-events: none; opacity: 0; transform: translate(-50%, 12px) scale(.96); transition: opacity .2s ease, transform .25s cubic-bezier(.2,.8,.2,1); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .charger.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
 .charger svg { width: 22px; height: 22px; transform: rotate(-90deg); flex: none; }
@@ -282,17 +284,17 @@ html.charge main > section { margin-top: 0; padding-top: var(--s-8); padding-bot
       <div class="stat"><b>0 다운타임</b><span>무중단 배포, staging 60% 절감 (COIP)</span></div>
       <div class="stat"><b>20Hz</b><span>실시간 게임 서버 틱 (김밥 지옥)</span></div>
     </div>
+    <div class="principle" aria-labelledby="pr-h">
+      <h2 id="pr-h">일하는 방식: <em>이론으로 이해하고, 재현과 측정으로 검증합니다</em></h2>
+      <ol class="loop">
+        <li><b>원리 학습</b><span>공식 문서와 원서를 읽고 예제로 직접 확인해 지식 저장소에 정리</span></li>
+        <li><b>가설 세우기</b><span>증상이 생기면 원리에 비춰 원인 후보를 좁힘</span></li>
+        <li><b>재현과 측정</b><span>브라우저 재현, 로그 분석, 테스트로 가설을 확인하고 틀리면 버림</span></li>
+        <li><b>적용과 기록</b><span>확인된 것만 반영하고, 판단 근거를 커밋과 문서에 남김</span></li>
+      </ol>
+    </div>
   </div>
 
-  <div class="principle" aria-labelledby="pr-h">
-    <h2 id="pr-h">일하는 방식: <em>이론으로 이해하고, 재현과 측정으로 검증합니다</em></h2>
-    <ol class="loop">
-      <li><b>원리 학습</b><span>공식 문서와 원서를 읽고 예제로 직접 확인해 지식 저장소에 정리</span></li>
-      <li><b>가설 세우기</b><span>증상이 생기면 원리에 비춰 원인 후보를 좁힘</span></li>
-      <li><b>재현과 측정</b><span>브라우저 재현, 로그 분석, 테스트로 가설을 확인하고 틀리면 버림</span></li>
-      <li><b>적용과 기록</b><span>확인된 것만 반영하고, 판단 근거를 커밋과 문서에 남김</span></li>
-    </ol>
-  </div>
 
   <section id="career" aria-labelledby="career-h">
     <div class="two">
@@ -535,7 +537,7 @@ html.charge main > section { margin-top: 0; padding-top: var(--s-8); padding-bot
   if (!fine || calm) return;
   root.classList.add('charge');
   const HEAD = 60, NEED = 560;
-  const pages = [...document.querySelectorAll('.hero, .principle, main > section')];
+  const pages = [...document.querySelectorAll('.hero, main > section')];
   const nameOf = (el) => { const h = el.querySelector('h2, h1'); return h ? h.textContent.replace(/^일하는 방식:.*/, '일하는 방식').trim() : ''; };
   const ui = document.createElement('div'); ui.className = 'charger'; ui.setAttribute('aria-hidden', 'true');
   ui.innerHTML = '<svg viewBox="0 0 22 22"><circle class="track" cx="11" cy="11" r="9"/><circle class="fill" cx="11" cy="11" r="9"/></svg><span><span class="dir">&darr;</span> <b></b></span>';
@@ -546,6 +548,9 @@ html.charge main > section { margin-top: 0; padding-top: var(--s-8); padding-bot
   const endOf = (i) => { const view = innerHeight - HEAD, next = i + 1 < pages.length ? topOf(pages[i + 1]) : maxY() + view; return Math.max(topOf(pages[i]), Math.min(maxY(), next - view)); };
   const indexAt = (y) => { let k = 0; pages.forEach((p, i) => { if (topOf(p) <= y + 4) k = i; }); return k; };
 
+  function setCur(...ks) { pages.forEach((p, k) => p.classList.toggle('cur', ks.includes(k))); root.classList.toggle('last', ks.includes(pages.length - 1)); }
+  setCur(indexAt(scrollY));
+  addEventListener('load', () => setCur(indexAt(scrollY)));
   let animating = false, quiet = false, quietT, charge = 0, dir = 0, releaseT, held = -1;
   function show(c, d, name) { ui.style.setProperty('--c', c.toFixed(3)); ui.classList.toggle('show', c > 0.02); ui.classList.toggle('up', d < 0); ui.classList.toggle('full', c >= 1); if (name) label.textContent = name; }
   function reset() { charge = 0; dir = 0; show(0, 1); }
@@ -554,7 +559,7 @@ html.charge main > section { margin-top: 0; padding-top: var(--s-8); padding-bot
     const y0 = scrollY, d = y - y0, t0 = performance.now();
     (function step(t) { const q = Math.min(1, (t - t0) / T), e = 1 - Math.pow(1 - q, 4); scrollTo(0, y0 + d * e); if (q < 1) requestAnimationFrame(step); else { animating = false; if (done) done(); } })(t0);
   }
-  function jump(y, to) { reset(); held = to; glideTo(y, 720, () => { quiet = true; clearTimeout(quietT); quietT = setTimeout(() => { quiet = false; }, 200); }); }
+  function jump(y, to) { const from = indexAt(scrollY); reset(); held = to; setCur(from, to); glideTo(y, 720, () => { setCur(to); quiet = true; clearTimeout(quietT); quietT = setTimeout(() => { quiet = false; }, 200); }); }
 
   addEventListener('wheel', (e) => {
     if (e.ctrlKey) return;
@@ -586,6 +591,7 @@ html.charge main > section { margin-top: 0; padding-top: var(--s-8); padding-bot
     const top = topOf(pages[held]), end = endOf(held);
     if (scrollY > end + 1) scrollTo(0, end); else if (scrollY < top - 1) scrollTo(0, top);
   }, { passive: true });
+  addEventListener('scroll', () => { if (!animating && held < 0) setCur(indexAt(scrollY)); }, { passive: true });
   addEventListener('keydown', () => { held = -1; });
   addEventListener('mousedown', () => { held = -1; });
   document.querySelectorAll('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
