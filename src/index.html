@@ -35,7 +35,7 @@
   color-scheme: light;
 }
 * { box-sizing: border-box; }
-html { background: var(--bg); scroll-behavior: smooth; scroll-padding-top: 60px; scroll-snap-type: y proximity; }
+html { background: var(--bg); scroll-behavior: smooth; scroll-padding-top: 60px; scroll-snap-type: y mandatory; }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--f); font-size: 15px; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
 a { color: var(--accent); text-underline-offset: 3px; }
 a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
@@ -102,6 +102,8 @@ section { padding-bottom: 0; }
 .eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--text); opacity: .16; transform-origin: left center; transition: transform .9s cubic-bezier(.2,.8,.2,1), opacity .9s ease; }
 /* magnet: sections snap their top edge right under the sticky bar; the eyebrow rule draws in when a section arrives */
 .hero, .principle, section { scroll-snap-align: start; scroll-margin-top: 60px; }
+.case, details.proj:first-child, .repos, .pipe, .ecc { scroll-snap-align: start; scroll-margin-top: 84px; }
+footer { scroll-snap-align: end; }
 section { padding-top: 40px; margin-top: 24px; }
 .js section:not(.in) .eyebrow::after { transform: scaleX(0); opacity: 0; }
 section.in .eyebrow::after { opacity: .22; }
