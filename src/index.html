@@ -207,6 +207,11 @@ footer b { font-family: var(--mono); font-weight: 500; color: var(--text); }
 
 /* charge-to-advance: wheel past a section edge fills a gauge; full gauge moves to the next section */
 html.charge { scroll-snap-type: none; scroll-behavior: auto; }
+/* charge mode: every section is at least one screen tall so each reads as its own page */
+html.charge .hero, html.charge .principle, html.charge main > section { min-height: calc(100vh - 60px); }
+html.charge .hero { display: flex; flex-direction: column; justify-content: center; gap: var(--s-4); padding-block: var(--s-6); }
+html.charge .principle { margin-top: 0; padding-top: var(--s-8); align-content: start; }
+html.charge main > section { margin-top: 0; padding-top: var(--s-8); padding-bottom: var(--s-8); }
 .charger { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); z-index: 20; display: flex; align-items: center; gap: 10px; padding: 7px 14px 7px 8px; border-radius: 999px; background: rgba(23,24,27,.9); color: #FBFBF9; font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; pointer-events: none; opacity: 0; transform: translate(-50%, 12px) scale(.96); transition: opacity .2s ease, transform .25s cubic-bezier(.2,.8,.2,1); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .charger.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
 .charger svg { width: 22px; height: 22px; transform: rotate(-90deg); flex: none; }
@@ -529,7 +534,7 @@ html.charge { scroll-snap-type: none; scroll-behavior: auto; }
   const fine = matchMedia('(pointer: fine)').matches, calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (!fine || calm) return;
   root.classList.add('charge');
-  const HEAD = 60, NEED = 1000;
+  const HEAD = 60, NEED = 560;
   const pages = [...document.querySelectorAll('.hero, .principle, main > section')];
   const nameOf = (el) => { const h = el.querySelector('h2, h1'); return h ? h.textContent.replace(/^일하는 방식:.*/, '일하는 방식').trim() : ''; };
   const ui = document.createElement('div'); ui.className = 'charger'; ui.setAttribute('aria-hidden', 'true');
@@ -538,55 +543,55 @@ html.charge { scroll-snap-type: none; scroll-behavior: auto; }
   const label = ui.querySelector('b');
   const maxY = () => root.scrollHeight - innerHeight;
   const topOf = (el) => Math.max(0, Math.min(maxY(), Math.round(el.getBoundingClientRect().top + scrollY - HEAD)));
-  /* last scroll position that still belongs to page i: its bottom edge reaches the bottom of the screen */
   const endOf = (i) => { const view = innerHeight - HEAD, next = i + 1 < pages.length ? topOf(pages[i + 1]) : maxY() + view; return Math.max(topOf(pages[i]), Math.min(maxY(), next - view)); };
   const indexAt = (y) => { let k = 0; pages.forEach((p, i) => { if (topOf(p) <= y + 4) k = i; }); return k; };
 
-  let targetY = scrollY, gliding = false, animating = false, quiet = false, quietT, charge = 0, dir = 0, releaseT, page = indexAt(scrollY);
-  function glide() { const d = targetY - scrollY; if (Math.abs(d) < 0.5) { scrollTo(0, targetY); gliding = false; return; } scrollTo(0, scrollY + d * 0.2); requestAnimationFrame(glide); }
-  function free(y) { targetY = y; if (!gliding) { gliding = true; requestAnimationFrame(glide); } }
+  let animating = false, quiet = false, quietT, charge = 0, dir = 0, releaseT, held = -1;
   function show(c, d, name) { ui.style.setProperty('--c', c.toFixed(3)); ui.classList.toggle('show', c > 0.02); ui.classList.toggle('up', d < 0); ui.classList.toggle('full', c >= 1); if (name) label.textContent = name; }
   function reset() { charge = 0; dir = 0; show(0, 1); }
-  function jump(y, to) {
-    page = to; animating = true; gliding = false; reset();
-    const y0 = scrollY, d = y - y0, T = 700, t0 = performance.now();
-    (function step(t) { const q = Math.min(1, (t - t0) / T), e = 1 - Math.pow(1 - q, 4); scrollTo(0, y0 + d * e); if (q < 1) requestAnimationFrame(step); else { animating = false; targetY = scrollY; quiet = true; clearTimeout(quietT); quietT = setTimeout(() => { quiet = false; }, 180); } })(t0);
+  function glideTo(y, T, done) {
+    animating = true;
+    const y0 = scrollY, d = y - y0, t0 = performance.now();
+    (function step(t) { const q = Math.min(1, (t - t0) / T), e = 1 - Math.pow(1 - q, 4); scrollTo(0, y0 + d * e); if (q < 1) requestAnimationFrame(step); else { animating = false; if (done) done(); } })(t0);
   }
+  function jump(y, to) { reset(); held = to; glideTo(y, 720, () => { quiet = true; clearTimeout(quietT); quietT = setTimeout(() => { quiet = false; }, 200); }); }
 
   addEventListener('wheel', (e) => {
     if (e.ctrlKey) return;
-    e.preventDefault();
-    if (animating) return;
+    if (animating) { e.preventDefault(); return; }
     const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
     const d = Math.sign(dy); if (!d) return;
-    const y = gliding ? targetY : scrollY; page = indexAt(y); const top = topOf(pages[page]), end = endOf(page);
-    // inside the section: scroll freely, but never past its edges
-    if (d > 0 && y < end - 1) { reset(); free(Math.min(end, y + dy)); return; }
-    if (d < 0 && y > top + 1) { reset(); free(Math.max(top, y + dy)); return; }
-    // at an edge: the screen holds still and the gauge charges
-    if (quiet) { clearTimeout(quietT); quietT = setTimeout(() => { quiet = false; }, 180); return; }
-    const to = page + d;
+    const y = scrollY, i = indexAt(y), top = topOf(pages[i]), end = endOf(i);
+    held = i;
+    // inside the section: the browser scrolls as usual; only a step that would cross the edge is stopped at the edge
+    if (d > 0 && y < end - 1) { reset(); if (y + dy > end) { e.preventDefault(); glideTo(end, 220); } return; }
+    if (d < 0 && y > top + 1) { reset(); if (y + dy < top) { e.preventDefault(); glideTo(top, 220); } return; }
+    // at the edge: the page holds still while the gauge charges
+    e.preventDefault();
+    if (quiet) { clearTimeout(quietT); quietT = setTimeout(() => { quiet = false; }, 200); return; }
+    const to = i + d;
     if (to < 0 || to >= pages.length) { reset(); return; }
     if (d !== dir) { charge = 0; dir = d; }
-    charge += Math.abs(dy);
+    charge += Math.min(Math.abs(dy), 140);
     const c = Math.min(1, charge / NEED);
     show(c, d, nameOf(pages[to]));
     clearTimeout(releaseT);
     if (c >= 1) { jump(d > 0 ? topOf(pages[to]) : endOf(to), to); return; }
-    releaseT = setTimeout(reset, 350);
+    releaseT = setTimeout(reset, 420);
   }, { passive: false });
 
-  addEventListener('keydown', (e) => {
-    if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
-    if (e.key === 'Home') { e.preventDefault(); jump(0, 0); }
-    else if (e.key === 'End') { e.preventDefault(); jump(maxY(), pages.length - 1); }
-  });
+  // keep native smooth-wheel momentum from spilling into the next section
+  addEventListener('scroll', () => {
+    if (animating || held < 0) return;
+    const top = topOf(pages[held]), end = endOf(held);
+    if (scrollY > end + 1) scrollTo(0, end); else if (scrollY < top - 1) scrollTo(0, top);
+  }, { passive: true });
+  addEventListener('keydown', () => { held = -1; });
+  addEventListener('mousedown', () => { held = -1; });
   document.querySelectorAll('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
     const t = document.querySelector(a.getAttribute('href')); if (!t) return;
     e.preventDefault(); const y = topOf(t); jump(y, indexAt(y));
   }));
-  // keyboard, scrollbar dragging and anchor jumps move the page natively; keep the current section in sync
-  addEventListener('scroll', () => { if (!gliding && !animating) { targetY = scrollY; page = indexAt(scrollY); } }, { passive: true });
 })();
 </script>
   </body>
