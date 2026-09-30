@@ -35,7 +35,7 @@
   color-scheme: light;
 }
 * { box-sizing: border-box; }
-html { background: var(--bg); scroll-behavior: smooth; scroll-padding-top: 60px; scroll-snap-type: y mandatory; }
+html { background: var(--bg); scroll-behavior: smooth; scroll-padding-top: 60px; }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--f); font-size: 15px; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
 a { color: var(--accent); text-underline-offset: 3px; }
 a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
@@ -100,10 +100,7 @@ section { padding-bottom: 0; }
 .eyebrow { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--subtle); }
 .eyebrow i { font-style: normal; color: var(--accent); letter-spacing: .06em; }
 .eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--text); opacity: .16; transform-origin: left center; transition: transform .9s cubic-bezier(.2,.8,.2,1), opacity .9s ease; }
-/* magnet: sections snap their top edge right under the sticky bar; the eyebrow rule draws in when a section arrives */
-.hero, section { scroll-snap-align: start; scroll-margin-top: 60px; }
-.case, details.proj:first-child, .repos, .pipe, .ecc { scroll-snap-align: start; scroll-margin-top: 84px; }
-footer { scroll-snap-align: end; }
+/* the eyebrow rule draws in when a section arrives */
 section { padding-top: 40px; margin-top: 24px; }
 .js section:not(.in) .eyebrow::after { transform: scaleX(0); opacity: 0; }
 section.in .eyebrow::after { opacity: .22; }
@@ -205,24 +202,6 @@ footer b { font-family: var(--mono); font-weight: 500; color: var(--text); }
 .js .stats.in .stat b { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { .js .rv, .js .stat b { opacity: 1 !important; transform: none !important; transition: none !important; } .top nav .ink { transition: none; } }
 
-/* charge-to-advance: wheel past a section edge fills a gauge; full gauge moves to the next section */
-html.charge { scroll-snap-type: none; scroll-behavior: auto; }
-/* charge mode: every section is at least one screen tall so each reads as its own page */
-html.charge .hero, html.charge main > section { min-height: calc(100vh - 60px); }
-html.charge .hero { display: flex; flex-direction: column; justify-content: center; gap: var(--s-4); padding-block: var(--s-6); }
-html.charge main > section { margin-top: 0; padding-top: var(--s-8); padding-bottom: var(--s-8); }
-html.charge .hero:not(.cur), html.charge main > section:not(.cur) { visibility: hidden; }
-html.charge footer { visibility: hidden; }
-html.charge.last footer { visibility: visible; }
-.charger { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); z-index: 20; display: flex; align-items: center; gap: 10px; padding: 7px 14px 7px 8px; border-radius: 999px; background: rgba(23,24,27,.9); color: #FBFBF9; font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; pointer-events: none; opacity: 0; transform: translate(-50%, 12px) scale(.96); transition: opacity .2s ease, transform .25s cubic-bezier(.2,.8,.2,1); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-.charger.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
-.charger svg { width: 22px; height: 22px; transform: rotate(-90deg); flex: none; }
-.charger .track { fill: none; stroke: rgba(251,251,249,.2); stroke-width: 3; }
-.charger .fill { fill: none; stroke: #8FA4FF; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 56.55; stroke-dashoffset: calc(56.55 * (1 - var(--c, 0))); }
-.charger.full .fill { stroke: #FBFBF9; }
-.charger b { font-weight: 500; color: #8FA4FF; }
-.charger .dir { display: inline-block; transition: transform .2s; }
-.charger.up .dir { transform: rotate(180deg); }
 
 @media (max-width: 820px) {
   .wrap { padding-inline: var(--s-4); }
@@ -528,76 +507,6 @@ html.charge.last footer { visibility: visible; }
   addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
   addEventListener('resize', () => { current = null; update(); });
   update();
-})();
-</script>
-<script>
-(() => {
-  const root = document.documentElement;
-  const fine = matchMedia('(pointer: fine)').matches, calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!fine || calm) return;
-  root.classList.add('charge');
-  const HEAD = 60, NEED = 560;
-  const pages = [...document.querySelectorAll('.hero, main > section')];
-  const nameOf = (el) => { const h = el.querySelector('h2, h1'); return h ? h.textContent.replace(/^일하는 방식:.*/, '일하는 방식').trim() : ''; };
-  const ui = document.createElement('div'); ui.className = 'charger'; ui.setAttribute('aria-hidden', 'true');
-  ui.innerHTML = '<svg viewBox="0 0 22 22"><circle class="track" cx="11" cy="11" r="9"/><circle class="fill" cx="11" cy="11" r="9"/></svg><span><span class="dir">&darr;</span> <b></b></span>';
-  document.body.appendChild(ui);
-  const label = ui.querySelector('b');
-  const maxY = () => root.scrollHeight - innerHeight;
-  const topOf = (el) => Math.max(0, Math.min(maxY(), Math.round(el.getBoundingClientRect().top + scrollY - HEAD)));
-  const endOf = (i) => { const view = innerHeight - HEAD, next = i + 1 < pages.length ? topOf(pages[i + 1]) : maxY() + view; return Math.max(topOf(pages[i]), Math.min(maxY(), next - view)); };
-  const indexAt = (y) => { let k = 0; pages.forEach((p, i) => { if (topOf(p) <= y + 4) k = i; }); return k; };
-
-  function setCur(...ks) { pages.forEach((p, k) => p.classList.toggle('cur', ks.includes(k))); root.classList.toggle('last', ks.includes(pages.length - 1)); }
-  setCur(indexAt(scrollY));
-  addEventListener('load', () => setCur(indexAt(scrollY)));
-  let animating = false, quiet = false, quietT, charge = 0, dir = 0, releaseT, held = -1;
-  function show(c, d, name) { ui.style.setProperty('--c', c.toFixed(3)); ui.classList.toggle('show', c > 0.02); ui.classList.toggle('up', d < 0); ui.classList.toggle('full', c >= 1); if (name) label.textContent = name; }
-  function reset() { charge = 0; dir = 0; show(0, 1); }
-  function glideTo(y, T, done) {
-    animating = true;
-    const y0 = scrollY, d = y - y0, t0 = performance.now();
-    (function step(t) { const q = Math.min(1, (t - t0) / T), e = 1 - Math.pow(1 - q, 4); scrollTo(0, y0 + d * e); if (q < 1) requestAnimationFrame(step); else { animating = false; if (done) done(); } })(t0);
-  }
-  function jump(y, to) { const from = indexAt(scrollY); reset(); held = to; setCur(from, to); glideTo(y, 720, () => { setCur(to); quiet = true; clearTimeout(quietT); quietT = setTimeout(() => { quiet = false; }, 200); }); }
-
-  addEventListener('wheel', (e) => {
-    if (e.ctrlKey) return;
-    if (animating) { e.preventDefault(); return; }
-    const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * innerHeight : e.deltaY;
-    const d = Math.sign(dy); if (!d) return;
-    const y = scrollY, i = indexAt(y), top = topOf(pages[i]), end = endOf(i);
-    held = i;
-    // inside the section: the browser scrolls as usual; only a step that would cross the edge is stopped at the edge
-    if (d > 0 && y < end - 1) { reset(); if (y + dy > end) { e.preventDefault(); glideTo(end, 220); } return; }
-    if (d < 0 && y > top + 1) { reset(); if (y + dy < top) { e.preventDefault(); glideTo(top, 220); } return; }
-    // at the edge: the page holds still while the gauge charges
-    e.preventDefault();
-    if (quiet) { clearTimeout(quietT); quietT = setTimeout(() => { quiet = false; }, 200); return; }
-    const to = i + d;
-    if (to < 0 || to >= pages.length) { reset(); return; }
-    if (d !== dir) { charge = 0; dir = d; }
-    charge += Math.min(Math.abs(dy), 140);
-    const c = Math.min(1, charge / NEED);
-    show(c, d, nameOf(pages[to]));
-    clearTimeout(releaseT);
-    if (c >= 1) { jump(d > 0 ? topOf(pages[to]) : endOf(to), to); return; }
-    releaseT = setTimeout(reset, 420);
-  }, { passive: false });
-
-  // keep native smooth-wheel momentum from spilling into the next section
-  addEventListener('scroll', () => {
-    if (animating || held < 0) return;
-    const top = topOf(pages[held]), end = endOf(held);
-    if (scrollY > end + 1) scrollTo(0, end); else if (scrollY < top - 1) scrollTo(0, top);
-  }, { passive: true });
-  addEventListener('scroll', () => { if (!animating && held < 0) setCur(indexAt(scrollY)); }, { passive: true });
-  addEventListener('keydown', () => { held = -1; });
-  addEventListener('mousedown', () => { held = -1; });
-  document.querySelectorAll('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
-    const t = document.querySelector(a.getAttribute('href')); if (!t) return;
-    e.preventDefault(); const y = topOf(t); jump(y, indexAt(y));
-  }));
 })();
 </script>
   </body>
