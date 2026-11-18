@@ -209,6 +209,9 @@ section { padding-top: 80px; }
 .shots figcaption { display: grid; gap: 2px; }
 .shots figcaption b { font-size: 15px; line-height: 22px; font-weight: 700; color: var(--ink); }
 .shots figcaption span { font-size: 14px; line-height: 22px; color: var(--muted); }
+.shots.wide { grid-auto-columns: 440px; }
+.shots.wide img { width: 440px; aspect-ratio: 1440 / 900; border-radius: 8px; }
+.g-note { margin-left: 6px; font-size: 13px; line-height: 20px; font-weight: 500; color: var(--muted); }
 .shots .test { justify-self: start; font-size: 12px; line-height: 18px; font-weight: 600; color: var(--muted); background: var(--tint); border-radius: var(--r-tag); padding: 0 6px; }
 .g-note { font-size: 14px; line-height: 22px; color: var(--muted); }
 
@@ -344,6 +347,8 @@ footer a:hover { color: var(--brand-ink); }
   .kpi b { font-size: 22px; line-height: 30px; }
   .shots { grid-auto-columns: 240px; }
   .shots img { width: 240px; }
+  .shots.wide { grid-auto-columns: 300px; }
+  .shots.wide img { width: 300px; }
   .g-nav { display: none; }
 }
 @media (max-width: 400px) {
@@ -362,6 +367,8 @@ footer a:hover { color: var(--brand-ink); }
   .p-inner { opacity: 1 !important; visibility: visible !important; }
   .shots { grid-auto-flow: row; grid-template-columns: repeat(4, 1fr); overflow: visible; }
   .shots img { opacity: 1; }
+  .shots.wide { grid-template-columns: repeat(2, 1fr); }
+  .shots.wide img { width: 100%; }
   .proj, .case { break-inside: avoid; }
 }
 </style>
@@ -501,6 +508,18 @@ footer a:hover { color: var(--brand-ink); }
           <svg class="chev" aria-hidden="true"><use href="#i-chev"/></svg>
         </button></h3>
         <div class="p-body" id="p2" role="region" aria-labelledby="p2-h"><div><div class="p-inner">
+          <div class="gallery">
+            <div class="g-head"><b>주요 기능 <span class="g-note">로컬 실행, 데모 데이터</span></b>
+              <div class="g-nav"><button type="button" data-g="-1" aria-label="이전 화면"><svg aria-hidden="true"><use href="#i-back"/></svg></button><button type="button" data-g="1" aria-label="다음 화면"><svg aria-hidden="true"><use href="#i-go"/></svg></button></div>
+            </div>
+            <ul class="shots wide" aria-label="COIP 기능 화면, 가로로 넘겨 볼 수 있습니다">
+              <li><figure><button class="zoom" type="button" aria-label="거래소 화면 크게 보기"><img src="images/coip/exchange.webp" srcset="images/coip/exchange.webp 880w, images/coip/full/exchange.webp 1920w" sizes="(max-width: 720px) 300px, 440px" width="440" height="275" loading="lazy" alt="거래소 화면. 코인 목록, BTC 캔들 차트와 이동평균선, 호가, 매수 주문 패널" /></button><figcaption><b>거래소</b><span>Upbit 실시간 시세로 차트, 호가, 지정가와 시장가 주문을 처리합니다.</span></figcaption></figure></li>
+              <li><figure><button class="zoom" type="button" aria-label="전략 빌더와 백테스트 화면 크게 보기"><img src="images/coip/backtest.webp" srcset="images/coip/backtest.webp 880w, images/coip/full/backtest.webp 1920w" sizes="(max-width: 720px) 300px, 440px" width="440" height="275" loading="lazy" alt="전략 편집 화면. 진입과 청산 조건, 30일 백테스트 결과 지표와 자산 곡선, 체결 내역" /></button><figcaption><b>전략 빌더와 백테스트</b><span>지표 조건을 조합해 전략을 만들고 실제 과거 캔들로 수익률, 승률, MDD를 확인합니다.</span></figcaption></figure></li>
+              <li><figure><button class="zoom" type="button" aria-label="매매 전략 관리 화면 크게 보기"><img src="images/coip/strategy.webp" srcset="images/coip/strategy.webp 880w, images/coip/full/strategy.webp 1920w" sizes="(max-width: 720px) 300px, 440px" width="440" height="275" loading="lazy" alt="매매 전략 목록 화면. 상태별 개수와 전략 카드의 진입, 청산 조건" /></button><figcaption><b>매매 전략 관리</b><span>전략을 라이브, 일시정지, 초안으로 나눠 관리하고 자동매매를 켭니다.</span></figcaption></figure></li>
+              <li><figure><button class="zoom" type="button" aria-label="투자내역 화면 크게 보기"><img src="images/coip/portfolio.webp" srcset="images/coip/portfolio.webp 880w, images/coip/full/portfolio.webp 1920w" sizes="(max-width: 720px) 300px, 440px" width="440" height="275" loading="lazy" alt="투자내역 화면. 총 자산, 보유 코인 구성 도넛 차트와 종목별 평가 손익" /></button><figcaption><b>투자내역</b><span>보유 자산 구성, 평균 매수가, 평가 손익을 한 화면에서 봅니다.</span></figcaption></figure></li>
+              <li><figure><button class="zoom" type="button" aria-label="리더보드 화면 크게 보기"><img src="images/coip/leaderboard.webp" srcset="images/coip/leaderboard.webp 880w, images/coip/full/leaderboard.webp 1920w" sizes="(max-width: 720px) 300px, 440px" width="440" height="275" loading="lazy" alt="리더보드 화면. 1~3위 시상대와 수익률 순위 목록" /></button><figcaption><b>리더보드</b><span>기간별 수익률 순위를 집계해 보여 줍니다.</span></figcaption></figure></li>
+            </ul>
+          </div>
           <dl class="kv">
             <div><dt>범위</dt><dd>현물 거래(지정가, 시장가, 예약 주문, 매칭 엔진), 1~125배 레버리지 선물과 청산 엔진, 보조지표, 자동매매, 백테스트, 리더보드, 커뮤니티와 실시간 채팅</dd></div>
             <div><dt>구조</dt><dd>SSR을 기본으로 초기 로드만 DRF, 실시간 시세와 채팅은 Channels로 처리했습니다. Upbit API는 프록시 계층으로 격리하고 캐싱과 사용자별 토큰 버킷으로 호출 제한에 대응했습니다.</dd></div>
@@ -601,7 +620,7 @@ footer a:hover { color: var(--brand-ink); }
   <div class="wrap"><span>© 2026 이성현</span><a href="https://github.com/kktrkkt" target="_blank" rel="noopener">github.com/kktrkkt</a></div>
 </footer>
 
-<dialog class="lb" aria-label="앱 화면 크게 보기"><button class="lb-close" type="button" aria-label="닫기"><svg aria-hidden="true"><use href="#i-x"/></svg></button><figure><img alt="" /><figcaption></figcaption></figure></dialog>
+<dialog class="lb" aria-label="화면 크게 보기"><button class="lb-close" type="button" aria-label="닫기"><svg aria-hidden="true"><use href="#i-x"/></svg></button><figure><img alt="" /><figcaption></figcaption></figure></dialog>
 
 <div class="toast" role="status" aria-live="polite"><svg class="ok" aria-hidden="true"><use href="#i-ok"/></svg><svg class="bad" aria-hidden="true"><use href="#i-bad"/></svg><span class="msg"></span></div>
 
@@ -686,7 +705,7 @@ footer a:hover { color: var(--brand-ink); }
     document.querySelectorAll('.zoom').forEach((z) => z.addEventListener('click', () => {
       const img = z.querySelector('img');
       opener = z;
-      lbImg.srcset = img.srcset; lbImg.sizes = 'min(480px, 100vw)'; lbImg.src = img.src; lbImg.alt = img.alt;
+      lbImg.srcset = img.srcset; lbImg.sizes = z.closest('.wide') ? 'min(1440px, 100vw)' : 'min(480px, 100vw)'; lbImg.src = img.src; lbImg.alt = img.alt;
       lbCap.textContent = z.closest('figure').querySelector('figcaption b').textContent;
       lb.showModal();
     }));
