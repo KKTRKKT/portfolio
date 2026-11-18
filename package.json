@@ -2,7 +2,10 @@
   "name": "kktrkkt-portfolio",
   "version": "1.0.0",
   "description": "이성현 · Backend Engineer Portfolio — KISTI · 커미조아 · 수자원공사 케이스 스터디",
-  "source": "src/index.html",
+  "source": [
+    "src/index.html",
+    "src/modoodoc.html"
+  ],
   "homepage": "https://portfolio.kktrkkt.dev",
   "scripts": {
     "start": "parcel",
