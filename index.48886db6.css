@@ -867,7 +867,7 @@ section {
   grid-auto-columns: 248px;
   grid-auto-flow: column;
   gap: 16px;
-  padding-bottom: 8px;
+  padding: 4px 0 8px;
   scroll-padding-inline: 0;
   display: grid;
   overflow-x: auto;
@@ -2004,8 +2004,8 @@ footer {
 
 .shots img {
   background: #111;
-  border: 6px solid #111;
-  border-radius: 24px;
+  border: 4px solid #111;
+  border-radius: 20px;
 }
 
 .zoom:hover img {
